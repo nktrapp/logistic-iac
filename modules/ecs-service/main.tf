@@ -213,6 +213,7 @@ resource "aws_ecs_service" "service" {
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.service.arn
   desired_count   = var.desired_count
+  force_delete    = true
 
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   deployment_maximum_percent         = var.deployment_maximum_percent
