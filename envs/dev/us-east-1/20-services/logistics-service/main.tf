@@ -58,16 +58,14 @@ resource "aws_secretsmanager_secret_version" "mongodb" {
   secret_string = var.mongodb_uri
 }
 
-module "redis" {
-  source = "../../../../../modules/elasticache"
+resource "aws_secretsmanager_secret" "redis" {
+  name = "${var.project_name}/${var.environment}/${local.service_name}/redis"
+  tags = local.tags
+}
 
-  name_prefix                = "${local.name_prefix}-${local.service_short_name}"
-  vpc_id                     = data.terraform_remote_state.foundation.outputs.vpc_id
-  private_subnet_ids         = data.terraform_remote_state.foundation.outputs.private_subnet_ids
-  allowed_security_group_ids = [data.terraform_remote_state.foundation.outputs.ecs_security_group_id]
-  secret_name                = "${var.project_name}/${var.environment}/${local.service_name}/redis"
-  node_type                  = var.redis_node_type
-  tags                       = local.tags
+resource "aws_secretsmanager_secret_version" "redis" {
+  secret_id     = aws_secretsmanager_secret.redis.id
+  secret_string = var.redis_password
 }
 
 module "service" {
@@ -104,8 +102,8 @@ module "service" {
     JAVA_TOOL_OPTIONS                = "-XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=70"
     AWS_REGION                       = var.aws_region
     SPRING_CLOUD_AWS_REGION_STATIC   = var.aws_region
-    REDIS_HOST                       = module.redis.endpoint
-    REDIS_PORT                       = tostring(module.redis.port)
+    REDIS_HOST                       = var.redis_host
+    REDIS_PORT                       = tostring(var.redis_port)
     APP_VIACEP_BASE_URL              = var.viacep_base_url
     APP_MESSAGING_INBOUND_QUEUE      = data.aws_ssm_parameter.package_events_name.value
     APP_MESSAGING_OUTBOUND_QUEUE     = data.aws_ssm_parameter.logistics_events_name.value
@@ -114,12 +112,13 @@ module "service" {
   }
 
   secrets = {
-    MONGODB_URI = aws_secretsmanager_secret.mongodb.arn
+    MONGODB_URI    = aws_secretsmanager_secret.mongodb.arn
+    REDIS_PASSWORD = aws_secretsmanager_secret.redis.arn
   }
 
   secret_arns = [
     aws_secretsmanager_secret.mongodb.arn,
-    module.redis.secret_arn,
+    aws_secretsmanager_secret.redis.arn,
   ]
 
   sqs_queue_arns = [

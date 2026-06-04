@@ -51,10 +51,21 @@ variable "mongodb_uri" {
   sensitive   = true
 }
 
-variable "redis_node_type" {
-  description = "Redis node type."
+variable "redis_host" {
+  description = "External managed Redis host (e.g. Redis Cloud free tier)."
   type        = string
-  default     = "cache.t3.micro"
+}
+
+variable "redis_port" {
+  description = "External managed Redis port."
+  type        = number
+  default     = 6379
+}
+
+variable "redis_password" {
+  description = "External managed Redis password. Stored in Secrets Manager and injected as REDIS_PASSWORD."
+  type        = string
+  sensitive   = true
 }
 
 variable "viacep_base_url" {

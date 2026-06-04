@@ -5,4 +5,9 @@ service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/log
 # MongoDB Atlas (M0 free) connection string. Keep the real value out of git.
 mongodb_uri = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
 
+# External managed Redis (e.g. Redis Cloud free). Keep the password out of git.
+redis_host     = "<host>.redns.redis-cloud.com"
+redis_port     = 6379
+redis_password = "CHANGE_ME_redis_password"
+
 desired_count = 1
