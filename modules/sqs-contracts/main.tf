@@ -67,8 +67,8 @@ resource "aws_sqs_queue" "main" {
     Contract   = each.value.name
     QueueRole  = "main"
     Producer   = coalesce(each.value.producer, "")
-    Consumers  = join(",", each.value.consumers)
-    Events     = join(",", each.value.events)
+    Consumers  = join("/", each.value.consumers)
+    Events     = join("/", each.value.events)
     Deprecated = tostring(each.value.deprecated)
   })
 }
