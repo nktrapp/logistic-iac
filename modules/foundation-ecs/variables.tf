@@ -27,7 +27,7 @@ variable "enable_container_insights" {
 variable "ecs_instance_type" {
   description = "EC2 instance type used by ECS capacity provider."
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "ecs_instance_min_size" {

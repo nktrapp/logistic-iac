@@ -61,7 +61,7 @@ variable "alb_ingress_cidr_blocks" {
 variable "ecs_instance_type" {
   description = "EC2 instance type used by ECS."
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "ecs_min_size" {
