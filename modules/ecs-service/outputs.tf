@@ -18,11 +18,6 @@ output "target_group_arn" {
   value       = aws_lb_target_group.service.arn
 }
 
-output "ecr_repository_url" {
-  description = "ECR repository URL."
-  value       = aws_ecr_repository.service.repository_url
-}
-
 output "log_group_name" {
   description = "CloudWatch log group name."
   value       = aws_cloudwatch_log_group.service.name

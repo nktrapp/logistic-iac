@@ -57,3 +57,44 @@ resource "aws_dynamodb_table" "terraform_lock" {
     Name = var.lock_table_name
   })
 }
+
+resource "aws_ecr_repository" "service" {
+  for_each = toset(var.service_names)
+
+  name                 = "${var.project_name}/${each.value}"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = var.ecr_scan_on_push
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = merge(local.tags, {
+    Name    = "${var.project_name}/${each.value}"
+    Service = each.value
+  })
+}
+
+resource "aws_ecr_lifecycle_policy" "service" {
+  for_each = aws_ecr_repository.service
+
+  repository = each.value.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last ${var.ecr_keep_last_images} images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = var.ecr_keep_last_images
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}

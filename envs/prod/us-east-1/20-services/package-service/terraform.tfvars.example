@@ -1,5 +1,5 @@
 # Use an immutable tag in prod. Do not use latest.
-service_image = "ghcr.io/<org-or-user>/package-service:<version>"
+service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/package-service:<version>"
 
 # Use a strong password. Keep the real value out of git.
 docdb_master_password = "CHANGE_ME_use_a_strong_password"

@@ -27,3 +27,21 @@ variable "lock_table_name" {
   type        = string
   default     = "logistic-iac-terraform-lock"
 }
+
+variable "service_names" {
+  description = "Services that get a shared, environment-agnostic ECR repository."
+  type        = list(string)
+  default     = ["logistics-service", "package-service"]
+}
+
+variable "ecr_keep_last_images" {
+  description = "Number of images kept per ECR repository before older ones expire. Shared across dev and prod, so keep enough room for the running prod tag."
+  type        = number
+  default     = 10
+}
+
+variable "ecr_scan_on_push" {
+  description = "Whether ECR scans images for vulnerabilities on push."
+  type        = bool
+  default     = true
+}

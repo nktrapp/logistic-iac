@@ -3,11 +3,6 @@ output "package_service_url" {
   value       = "http://${data.terraform_remote_state.foundation.outputs.alb_dns_name}/api/v1/packages"
 }
 
-output "ecr_repository_url" {
-  description = "Package Service ECR repository URL."
-  value       = module.service.ecr_repository_url
-}
-
 output "ecs_service_name" {
   description = "ECS service name."
   value       = module.service.service_name

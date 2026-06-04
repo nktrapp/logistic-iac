@@ -22,44 +22,6 @@ locals {
   }
 }
 
-resource "aws_ecr_repository" "service" {
-  name                 = "${var.project_name}/${var.environment}/${var.service_name}"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = false
-  }
-
-  encryption_configuration {
-    encryption_type = "AES256"
-  }
-
-  tags = merge(var.tags, {
-    Name    = "${var.name_prefix}-${var.service_name}-ecr"
-    Layer   = "service"
-    Service = var.service_name
-  })
-}
-
-resource "aws_ecr_lifecycle_policy" "service" {
-  repository = aws_ecr_repository.service.name
-
-  policy = jsonencode({
-    rules = [{
-      rulePriority = 1
-      description  = "Keep last 2 images"
-      selection = {
-        tagStatus   = "any"
-        countType   = "imageCountMoreThan"
-        countNumber = 2
-      }
-      action = {
-        type = "expire"
-      }
-    }]
-  })
-}
-
 resource "aws_cloudwatch_log_group" "service" {
   name              = local.log_group_name
   retention_in_days = var.log_retention_days
