@@ -28,7 +28,7 @@ bootstrap       S3 bucket de state, DynamoDB lock e repositorios ECR (um por ser
 foundation      VPC, subnets, ALB, ECS cluster EC2, ASG e IAM base
 contracts       SQS, DLQs, alarmes SQS e parametros SSM de contrato
 package-service ECS service, target group, IAM task, secret com a URI do MongoDB
-logistics       ECS service, target group, IAM task, Redis e secret com a URI do MongoDB
+logistics       ECS service, target group, IAM task, secrets com a URI do MongoDB e a senha do Redis
 ```
 
 Os repositorios ECR sao unicos por servico (sem ambiente no nome) e vivem no
@@ -173,15 +173,15 @@ ECS EC2       1x t3.micro por ambiente
 NAT Gateway   desabilitado por padrao
 ALB           1 por ambiente
 MongoDB       MongoDB Atlas M0 (gratis, fora da AWS)
-Redis         1 cache.t3.micro no logistics-service
+Redis         Redis Cloud free (gratis, fora da AWS, so no logistics-service)
 SQS/SSM/S3    baixo custo em uso pequeno
 CloudWatch    logs com retencao de 1 dia
 ```
 
-O MongoDB roda no MongoDB Atlas (M0 free), fora da AWS, porque contas AWS no
-plano free bloqueiam o DocumentDB. Mesmo assim, isto nao e 100% free tier: ALB e
-ElastiCache podem gerar cobranca. Suba, valide e destrua o que nao estiver
-usando.
+MongoDB e Redis rodam em servicos gerenciados gratuitos fora da AWS (MongoDB
+Atlas M0 e Redis Cloud free), porque contas AWS no plano free bloqueiam tanto o
+DocumentDB quanto o ElastiCache. Mesmo assim, isto nao e 100% free tier: o ALB
+pode gerar cobranca. Suba, valide e destrua o que nao estiver usando.
 
 ## 1. Criar o backend remoto
 
@@ -279,6 +279,23 @@ valor vai na variavel `mongodb_uri` do `terraform.tfvars` de cada servico
 (passos 4 e 5). O Atlas usa TLS por padrao e a connection string `mongodb+srv`
 ja e tratada pelo driver, sem CA extra.
 
+## Pre: Redis externo (apenas logistics-service)
+
+Pelo mesmo motivo (plano free bloqueia ElastiCache), o logistics-service usa um
+Redis gerenciado externo gratuito, como o Redis Cloud free (30 MB). O stack cria
+apenas um secret com a senha; `host` e `port` vao como variaveis comuns.
+
+Configure uma vez (so para o logistics-service):
+
+1. Crie uma conta gratis em <https://redis.io/cloud/> e um database free.
+2. Anote `host`, `port` e a senha (default user). Use o endpoint sem TLS, ja que
+   o `application-prod.yml` espera `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`
+   sem SSL.
+3. Esses valores vao nas variaveis `redis_host`, `redis_port` e `redis_password`
+   do `terraform.tfvars` do logistics-service (passo 5).
+
+O package-service nao usa Redis.
+
 ## 4. Subir package-service
 
 Crie um arquivo local `terraform.tfvars` em
@@ -311,9 +328,12 @@ Crie um arquivo local `terraform.tfvars` em
 `envs/dev/us-east-1/20-services/logistics-service`:
 
 ```hcl
-service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
-mongodb_uri   = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
-desired_count = 1
+service_image  = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
+mongodb_uri    = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
+redis_host     = "<host>.redns.redis-cloud.com"
+redis_port     = 6379
+redis_password = "<senha-do-redis>"
+desired_count  = 1
 ```
 
 Depois aplique:

@@ -8,11 +8,6 @@ output "ecs_service_name" {
   value       = module.service.service_name
 }
 
-output "elasticache_endpoint" {
-  description = "Redis endpoint."
-  value       = module.redis.endpoint
-}
-
 output "mongodb_secret_arn" {
   description = "MongoDB secret ARN."
   value       = aws_secretsmanager_secret.mongodb.arn
@@ -20,7 +15,7 @@ output "mongodb_secret_arn" {
 
 output "redis_secret_arn" {
   description = "Redis secret ARN."
-  value       = module.redis.secret_arn
+  value       = aws_secretsmanager_secret.redis.arn
 }
 
 output "package_events_queue_url" {
