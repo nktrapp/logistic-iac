@@ -46,8 +46,8 @@ O Terraform local cria apenas recursos simulaveis e uteis ao desenvolvimento:
 - SSM parameters.
 - Secrets Manager, quando necessario.
 
-VPC, ALB, ECS, DocumentDB e ElastiCache nao sao simulados por Terraform local.
-Eles sao substituidos por containers como MongoDB e Redis.
+VPC, ALB e ECS nao sao simulados por Terraform local. MongoDB e Redis rodam como
+containers locais.
 
 Alarmes de DLQ ficam desabilitados no stack local para nao depender da
 compatibilidade completa de CloudWatch no emulador.
