@@ -51,7 +51,7 @@ variable "ecs_instance_desired_capacity" {
 variable "ecs_instance_volume_size" {
   description = "Root EBS volume size in GiB."
   type        = number
-  default     = 8
+  default     = 30
 }
 
 variable "ecs_optimized_ami_ssm_parameter" {

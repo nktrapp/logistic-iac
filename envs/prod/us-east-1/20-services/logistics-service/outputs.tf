@@ -30,10 +30,10 @@ output "redis_secret_arn" {
 
 output "package_events_queue_url" {
   description = "Package events queue URL."
-  value       = data.aws_ssm_parameter.package_events_url.value
+  value       = nonsensitive(data.aws_ssm_parameter.package_events_url.value)
 }
 
 output "logistics_events_queue_url" {
   description = "Logistics events queue URL."
-  value       = data.aws_ssm_parameter.logistics_events_url.value
+  value       = nonsensitive(data.aws_ssm_parameter.logistics_events_url.value)
 }
