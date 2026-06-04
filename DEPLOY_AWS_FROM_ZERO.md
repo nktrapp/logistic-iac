@@ -179,9 +179,8 @@ CloudWatch    logs com retencao de 1 dia
 ```
 
 MongoDB e Redis rodam em servicos gerenciados gratuitos fora da AWS (MongoDB
-Atlas M0 e Redis Cloud free), porque contas AWS no plano free bloqueiam tanto o
-DocumentDB quanto o ElastiCache. Mesmo assim, isto nao e 100% free tier: o ALB
-pode gerar cobranca. Suba, valide e destrua o que nao estiver usando.
+Atlas M0 e Redis Cloud free). Mesmo assim, isto nao e 100% free tier: o ALB pode
+gerar cobranca. Suba, valide e destrua o que nao estiver usando.
 
 ## 1. Criar o backend remoto
 
@@ -256,9 +255,9 @@ Servicos leem esses parametros. Servicos nao criam SQS.
 
 ## Pre: MongoDB Atlas (M0 free)
 
-Os servicos usam MongoDB no Atlas (free tier), porque contas AWS no plano free
-nao permitem DocumentDB. Cada stack de servico cria apenas um secret no Secrets
-Manager com a connection string; o banco em si vive no Atlas.
+Os servicos usam MongoDB no Atlas (free tier). Cada stack de servico cria apenas
+um secret no Secrets Manager com a connection string; o banco em si vive no
+Atlas.
 
 Configure uma vez:
 
@@ -281,9 +280,9 @@ ja e tratada pelo driver, sem CA extra.
 
 ## Pre: Redis externo (apenas logistics-service)
 
-Pelo mesmo motivo (plano free bloqueia ElastiCache), o logistics-service usa um
-Redis gerenciado externo gratuito, como o Redis Cloud free (30 MB). O stack cria
-apenas um secret com a senha; `host` e `port` vao como variaveis comuns.
+O logistics-service usa um Redis gerenciado externo gratuito, como o Redis Cloud
+free (30 MB). O stack cria apenas um secret com a senha; `host` e `port` vao como
+variaveis comuns.
 
 Configure uma vez (so para o logistics-service):
 
