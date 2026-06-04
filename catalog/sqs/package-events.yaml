@@ -1,0 +1,15 @@
+name: package-events
+type: fifo
+producer: package-service
+consumers:
+  - logistics-service
+events:
+  - package.created
+  - package.status.updated
+  - package.destination.changed
+dlq: true
+visibility_timeout_seconds: 60
+retention_seconds: 345600
+receive_wait_time_seconds: 20
+max_receive_count: 3
+content_based_deduplication: false
