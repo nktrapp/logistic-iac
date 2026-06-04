@@ -1,0 +1,7 @@
+# Use the image published by logistics-service release workflow.
+service_image = "ghcr.io/<org-or-user>/logistics-service:<tag>"
+
+# Use a strong password. Keep the real value out of git.
+docdb_master_password = "CHANGE_ME_use_a_strong_password"
+
+desired_count = 1

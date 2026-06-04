@@ -16,6 +16,12 @@ variable "project_name" {
   default     = "furb-logistics"
 }
 
+variable "owner" {
+  description = "Owning team."
+  type        = string
+  default     = "platform"
+}
+
 variable "ssm_root_prefix" {
   description = "Root SSM path for logistic contracts."
   type        = string

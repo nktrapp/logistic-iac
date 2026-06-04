@@ -6,10 +6,11 @@
 
 Contem recursos compartilhados e de baixo nivel:
 
-- VPC, subnets, NAT, rotas e security groups base.
-- ALB publico, listeners, certificados e DNS.
+- VPC, subnets, NAT opcional, rotas e security groups base.
+- ALB publico, listeners e certificado ACM opcional.
 - ECS cluster e IAM de plataforma.
-- KMS, state backend, observabilidade compartilhada e integracoes globais.
+- State backend, observabilidade compartilhada e integracoes globais quando
+  necessarias.
 
 Essa camada e mantida pelo time de plataforma.
 

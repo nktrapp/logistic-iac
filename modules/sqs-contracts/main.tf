@@ -37,12 +37,12 @@ resource "aws_sqs_queue" "dlq" {
   message_retention_seconds   = 1209600
 
   tags = merge(var.tags, {
-    Name        = "${var.queue_name_prefix}${each.value.name}-dlq${each.value.fifo ? ".fifo" : ""}"
-    Layer       = "contracts"
-    Contract    = each.value.name
-    QueueRole   = "dlq"
-    Producer    = coalesce(each.value.producer, "")
-    Deprecated  = tostring(each.value.deprecated)
+    Name       = "${var.queue_name_prefix}${each.value.name}-dlq${each.value.fifo ? ".fifo" : ""}"
+    Layer      = "contracts"
+    Contract   = each.value.name
+    QueueRole  = "dlq"
+    Producer   = coalesce(each.value.producer, "")
+    Deprecated = tostring(each.value.deprecated)
   })
 }
 

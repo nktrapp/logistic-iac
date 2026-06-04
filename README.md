@@ -13,6 +13,7 @@ filas SQS. Filas sao contratos compartilhados e pertencem ao stack
 catalog/sqs/                         # Contratos SQS declarativos
 modules/sqs-contracts/               # Modulo que materializa contratos SQS
 envs/local/ministack/contracts/       # Terraform local contra MiniStack
+envs/bootstrap/us-east-1/             # Bootstrap do backend remoto
 envs/dev/us-east-1/                  # Stacks AWS de dev
 envs/prod/us-east-1/                 # Stacks AWS de prod
 docs/                                # Fluxos, decisoes e guias operacionais
@@ -20,10 +21,21 @@ docs/                                # Fluxos, decisoes e guias operacionais
 
 ## Camadas
 
+- `bootstrap`: S3 bucket de state e tabela DynamoDB de lock.
 - `00-foundation`: rede, ALB, ECS cluster, IAM base, KMS, DNS e recursos
   compartilhados.
 - `10-contracts`: SQS, DLQs, parametros SSM, alarmes e catalogo de eventos.
 - `20-services/*`: recursos de cada servico, sem ownership de SQS.
+
+## Deploy AWS oficial
+
+O caminho oficial de deploy AWS fica neste repositorio. Nao use mais
+`terraform/base` nem os Terraform legados dentro dos repos de servico para subir
+a AWS.
+
+Leia o passo a passo:
+
+- [Deploy AWS do zero](DEPLOY_AWS_FROM_ZERO.md)
 
 ## Desenvolvimento local
 

@@ -16,6 +16,12 @@ variable "project_name" {
   default     = "logistic"
 }
 
+variable "owner" {
+  description = "Owning team."
+  type        = string
+  default     = "local"
+}
+
 variable "ministack_endpoint" {
   description = "MiniStack AWS-compatible endpoint."
   type        = string

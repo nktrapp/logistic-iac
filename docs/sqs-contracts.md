@@ -36,10 +36,12 @@ package-events-queue.fifo
 logistics-events-queue.fifo
 ```
 
-Em AWS, `queue_name_prefix` deve usar o nome do projeto, por exemplo:
+Em AWS, `queue_name_prefix` deve usar projeto e ambiente para evitar colisao
+entre `dev` e `prod`, por exemplo:
 
 ```text
-furb-logistics-package-events-queue.fifo
+furb-logistics-dev-package-events-queue.fifo
+furb-logistics-prod-package-events-queue.fifo
 ```
 
 ## Parametros SSM publicados

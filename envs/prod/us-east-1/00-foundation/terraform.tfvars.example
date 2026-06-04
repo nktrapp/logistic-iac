@@ -1,0 +1,12 @@
+owner = "platform"
+
+# Set an ACM ARN for HTTPS in prod when available.
+certificate_arn = ""
+
+# Disabled by default because NAT Gateway is not free-tier friendly.
+create_nat_gateway = false
+
+ecs_instance_type    = "t3.micro"
+ecs_min_size         = 1
+ecs_max_size         = 1
+ecs_desired_capacity = 1

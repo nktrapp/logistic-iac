@@ -42,4 +42,6 @@ Policies obrigatorias:
 - Servico nao pode ler remote state de outro servico.
 - Fila usada nao pode ser removida diretamente.
 - Prioridade de ALB listener rule nao pode repetir.
+- Recursos AWS devem carregar tags `Project`, `Environment`, `Owner`,
+  `ManagedBy` e `Layer`.
 - Prod nao pode usar imagem `latest`.
