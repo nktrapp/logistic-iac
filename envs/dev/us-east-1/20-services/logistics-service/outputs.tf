@@ -8,11 +8,6 @@ output "ecs_service_name" {
   value       = module.service.service_name
 }
 
-output "documentdb_endpoint" {
-  description = "DocumentDB endpoint."
-  value       = module.documentdb.endpoint
-}
-
 output "elasticache_endpoint" {
   description = "Redis endpoint."
   value       = module.redis.endpoint
@@ -20,7 +15,7 @@ output "elasticache_endpoint" {
 
 output "mongodb_secret_arn" {
   description = "MongoDB secret ARN."
-  value       = module.documentdb.secret_arn
+  value       = aws_secretsmanager_secret.mongodb.arn
 }
 
 output "redis_secret_arn" {
@@ -30,10 +25,10 @@ output "redis_secret_arn" {
 
 output "package_events_queue_url" {
   description = "Package events queue URL."
-  value       = data.aws_ssm_parameter.package_events_url.value
+  value       = nonsensitive(data.aws_ssm_parameter.package_events_url.value)
 }
 
 output "logistics_events_queue_url" {
   description = "Logistics events queue URL."
-  value       = data.aws_ssm_parameter.logistics_events_url.value
+  value       = nonsensitive(data.aws_ssm_parameter.logistics_events_url.value)
 }

@@ -49,9 +49,9 @@ variable "ecs_instance_desired_capacity" {
 }
 
 variable "ecs_instance_volume_size" {
-  description = "Root EBS volume size in GiB."
+  description = "Root EBS volume size in GiB. Must be >= the ECS-optimized AMI snapshot size (30 GiB for Amazon Linux 2023)."
   type        = number
-  default     = 8
+  default     = 30
 }
 
 variable "ecs_optimized_ami_ssm_parameter" {

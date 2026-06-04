@@ -45,29 +45,10 @@ variable "image_pull_secret_arn" {
   default     = ""
 }
 
-variable "docdb_master_username" {
-  description = "DocumentDB master username."
-  type        = string
-  default     = "docdbadmin"
-  sensitive   = true
-}
-
-variable "docdb_master_password" {
-  description = "DocumentDB master password."
+variable "mongodb_uri" {
+  description = "MongoDB connection string (e.g. MongoDB Atlas SRV URI). Stored in Secrets Manager and injected as MONGODB_URI."
   type        = string
   sensitive   = true
-}
-
-variable "docdb_instance_count" {
-  description = "Number of DocumentDB instances."
-  type        = number
-  default     = 1
-}
-
-variable "docdb_instance_class" {
-  description = "DocumentDB instance class."
-  type        = string
-  default     = "db.t3.medium"
 }
 
 variable "redis_node_type" {

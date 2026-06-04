@@ -48,21 +48,14 @@ data "aws_ssm_parameter" "logistics_events_arn" {
   name = "${local.contracts_sqs_ssm_prefix}/logistics-events/arn"
 }
 
-module "documentdb" {
-  source = "../../../../../modules/documentdb"
+resource "aws_secretsmanager_secret" "mongodb" {
+  name = "${var.project_name}/${var.environment}/${local.service_name}/mongodb"
+  tags = local.tags
+}
 
-  name_prefix                = "${local.name_prefix}-${local.service_short_name}"
-  vpc_id                     = data.terraform_remote_state.foundation.outputs.vpc_id
-  private_subnet_ids         = data.terraform_remote_state.foundation.outputs.private_subnet_ids
-  allowed_security_group_ids = [data.terraform_remote_state.foundation.outputs.ecs_security_group_id]
-  master_username            = var.docdb_master_username
-  master_password            = var.docdb_master_password
-  database_name              = "package_db"
-  database_secret_key        = "package_uri"
-  secret_name                = "${var.project_name}/${var.environment}/${local.service_name}/mongodb"
-  instance_count             = var.docdb_instance_count
-  instance_class             = var.docdb_instance_class
-  tags                       = local.tags
+resource "aws_secretsmanager_secret_version" "mongodb" {
+  secret_id     = aws_secretsmanager_secret.mongodb.id
+  secret_string = var.mongodb_uri
 }
 
 module "service" {
@@ -106,11 +99,11 @@ module "service" {
   }
 
   secrets = {
-    MONGODB_URI = module.documentdb.database_secret_value_from
+    MONGODB_URI = aws_secretsmanager_secret.mongodb.arn
   }
 
   secret_arns = [
-    module.documentdb.secret_arn,
+    aws_secretsmanager_secret.mongodb.arn,
   ]
 
   sqs_queue_arns = [

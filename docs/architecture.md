@@ -26,7 +26,6 @@ lookup direto de recursos que pertencem a outro time.
 
 Contem recursos especificos de cada servico:
 
-- ECR.
 - ECS task definition e service.
 - Target group e listener rule.
 - IAM da task.
@@ -35,3 +34,7 @@ Contem recursos especificos de cada servico:
 
 Servicos nao criam SQS. Quando precisam produzir ou consumir eventos, eles
 declaram dependencia de um contrato publicado em `10-contracts`.
+
+O repositorio ECR de cada servico nao pertence a esta camada: ele e unico por
+servico e fica no stack `bootstrap`, compartilhado entre ambientes. Os servicos
+apenas referenciam a imagem publicada via `service_image`.

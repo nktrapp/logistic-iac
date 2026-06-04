@@ -2,7 +2,7 @@
 # Repository is created by envs/bootstrap and shared across environments.
 service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
 
-# Use a strong password. Keep the real value out of git.
-docdb_master_password = "CHANGE_ME_use_a_strong_password"
+# MongoDB Atlas (M0 free) connection string. Keep the real value out of git.
+mongodb_uri = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
 
 desired_count = 1
