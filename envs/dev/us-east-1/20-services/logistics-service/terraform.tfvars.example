@@ -2,12 +2,38 @@
 # Repository is created by envs/bootstrap and shared across environments.
 service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
 
-# MongoDB Atlas (M0 free) connection string. Keep the real value out of git.
+desired_count = 1
+
+# ---------------------------------------------------------------------------
+# Data stores: two ways to wire MongoDB and Redis.
+#
+# (A) DEFAULT - point to data you already provisioned (create_* = false).
+#     Keep the real values out of git.
+# ---------------------------------------------------------------------------
 mongodb_uri = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
 
-# External managed Redis (e.g. Redis Cloud free). Keep the password out of git.
 redis_host     = "<host>.redns.redis-cloud.com"
 redis_port     = 6379
 redis_password = "CHANGE_ME_redis_password"
 
-desired_count = 1
+# ---------------------------------------------------------------------------
+# (B) Let Terraform manage the Atlas M0 cluster and/or the Redis Cloud free DB.
+#     Flip the toggle, fill the credentials, and set the names to match what you
+#     already have, then `terraform import` the existing resources (see each
+#     module README) so nothing is recreated.
+# ---------------------------------------------------------------------------
+# create_mongodb        = true
+# atlas_public_key      = "<atlas-api-public-key>"
+# atlas_private_key     = "<atlas-api-private-key>"
+# atlas_org_id          = "<atlas-org-id>"
+# mongodb_project_name  = "furb-logistics-logistics-service"
+# mongodb_cluster_name  = "logistics"
+# mongodb_database_name = "logistics_db"
+# mongodb_db_username   = "logistics_app"
+# mongodb_db_password   = "<existing-or-blank-to-generate>"
+
+# create_redis            = true
+# rediscloud_api_key      = "<rediscloud-api-key>"
+# rediscloud_secret_key   = "<rediscloud-secret-key>"
+# redis_subscription_name = "furb-logistics-logistics-service"
+# redis_database_name     = "logistics-cache"

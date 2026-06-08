@@ -35,9 +35,9 @@ variable "service_names" {
 }
 
 variable "ecr_keep_last_images" {
-  description = "Number of images kept per ECR repository before older ones expire. Shared across dev and prod, so keep enough room for the running prod tag."
+  description = "Number of images kept per ECR repository before older ones expire. Repos are shared across dev and prod; with natively-compiled ~80MB images, 3 is the chosen retention."
   type        = number
-  default     = 10
+  default     = 3
 }
 
 variable "ecr_scan_on_push" {

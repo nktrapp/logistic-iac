@@ -14,5 +14,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = "~> 2.0"
+    }
+    rediscloud = {
+      source  = "RedisLabs/rediscloud"
+      version = "~> 1.4"
+    }
   }
 }

@@ -14,6 +14,39 @@ locals {
   }
 }
 
+module "mongodb" {
+  source = "../../../../../modules/data-mongodb-atlas"
+  count  = var.create_mongodb ? 1 : 0
+
+  atlas_org_id   = var.atlas_org_id
+  project_name   = var.mongodb_project_name
+  cluster_name   = var.mongodb_cluster_name
+  region         = var.mongodb_atlas_region
+  database_name  = var.mongodb_database_name
+  db_username    = var.mongodb_db_username
+  db_password    = var.mongodb_db_password
+  ip_access_list = var.mongodb_ip_access_list
+}
+
+module "redis" {
+  source = "../../../../../modules/data-redis-cloud"
+  count  = var.create_redis ? 1 : 0
+
+  subscription_name = var.redis_subscription_name
+  database_name     = var.redis_database_name
+  plan_name         = var.redis_plan_name
+  cloud_provider    = var.redis_cloud_provider
+  region            = var.redis_cloud_region
+  database_password = var.redis_password
+}
+
+locals {
+  mongodb_uri    = var.create_mongodb ? module.mongodb[0].connection_uri : var.mongodb_uri
+  redis_host     = var.create_redis ? module.redis[0].host : var.redis_host
+  redis_port     = var.create_redis ? module.redis[0].port : var.redis_port
+  redis_password = var.create_redis ? module.redis[0].password : var.redis_password
+}
+
 data "terraform_remote_state" "foundation" {
   backend = "s3"
 
@@ -55,7 +88,7 @@ resource "aws_secretsmanager_secret" "mongodb" {
 
 resource "aws_secretsmanager_secret_version" "mongodb" {
   secret_id     = aws_secretsmanager_secret.mongodb.id
-  secret_string = var.mongodb_uri
+  secret_string = local.mongodb_uri
 }
 
 resource "aws_secretsmanager_secret" "redis" {
@@ -65,7 +98,7 @@ resource "aws_secretsmanager_secret" "redis" {
 
 resource "aws_secretsmanager_secret_version" "redis" {
   secret_id     = aws_secretsmanager_secret.redis.id
-  secret_string = var.redis_password
+  secret_string = local.redis_password
 }
 
 module "service" {
@@ -108,8 +141,8 @@ module "service" {
     MANAGEMENT_TRACING_EXPORT_OTLP_ENABLED                = "true"
     MANAGEMENT_TRACING_SAMPLING_PROBABILITY               = "1.0"
     MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT = "http://adot-collector:4318/v1/traces"
-    REDIS_HOST                                            = var.redis_host
-    REDIS_PORT                                            = tostring(var.redis_port)
+    REDIS_HOST                                            = local.redis_host
+    REDIS_PORT                                            = tostring(local.redis_port)
     APP_VIACEP_BASE_URL                                   = var.viacep_base_url
     APP_MESSAGING_INBOUND_QUEUE                           = data.aws_ssm_parameter.package_events_name.value
     APP_MESSAGING_OUTBOUND_QUEUE                          = data.aws_ssm_parameter.logistics_events_name.value
