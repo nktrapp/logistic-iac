@@ -20,5 +20,5 @@ output "ecs_capacity_provider_name" {
 
 output "ecs_security_group_id" {
   description = "ECS instance security group id."
-  value       = aws_security_group.ecs.id
+  value       = module.sg.security_group_id
 }

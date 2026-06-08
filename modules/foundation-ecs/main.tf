@@ -2,27 +2,38 @@ data "aws_ssm_parameter" "ecs_optimized_ami" {
   name = var.ecs_optimized_ami_ssm_parameter
 }
 
-resource "aws_security_group" "ecs" {
+module "sg" {
+  source = "../security-group"
+
   name_prefix = "${var.name_prefix}-ecs-"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port       = 32768
-    to_port         = 65535
-    protocol        = "tcp"
-    security_groups = [var.alb_security_group_id]
-  }
+  ingress_rules = [
+    {
+      from_port                 = 32768
+      to_port                   = 65535
+      protocol                  = "tcp"
+      source_security_group_ids = [var.alb_security_group_id]
+    },
+  ]
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  egress_rules = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+  ]
 
   tags = merge(var.tags, {
     Name = "${var.name_prefix}-ecs-sg"
   })
+}
+
+moved {
+  from = aws_security_group.ecs
+  to   = module.sg.aws_security_group.this
 }
 
 resource "aws_ecs_cluster" "main" {
@@ -82,7 +93,7 @@ resource "aws_launch_template" "ecs" {
     name = aws_iam_instance_profile.ecs_instance.name
   }
 
-  vpc_security_group_ids = [aws_security_group.ecs.id]
+  vpc_security_group_ids = [module.sg.security_group_id]
 
   metadata_options {
     http_endpoint               = "enabled"

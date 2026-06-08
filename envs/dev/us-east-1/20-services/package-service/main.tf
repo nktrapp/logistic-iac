@@ -14,6 +14,24 @@ locals {
   }
 }
 
+module "mongodb" {
+  source = "../../../../../modules/data-mongodb-atlas"
+  count  = var.create_mongodb ? 1 : 0
+
+  atlas_org_id   = var.atlas_org_id
+  project_name   = var.mongodb_project_name
+  cluster_name   = var.mongodb_cluster_name
+  region         = var.mongodb_atlas_region
+  database_name  = var.mongodb_database_name
+  db_username    = var.mongodb_db_username
+  db_password    = var.mongodb_db_password
+  ip_access_list = var.mongodb_ip_access_list
+}
+
+locals {
+  mongodb_uri = var.create_mongodb ? module.mongodb[0].connection_uri : var.mongodb_uri
+}
+
 data "terraform_remote_state" "foundation" {
   backend = "s3"
 
@@ -55,7 +73,7 @@ resource "aws_secretsmanager_secret" "mongodb" {
 
 resource "aws_secretsmanager_secret_version" "mongodb" {
   secret_id     = aws_secretsmanager_secret.mongodb.id
-  secret_string = var.mongodb_uri
+  secret_string = local.mongodb_uri
 }
 
 module "service" {

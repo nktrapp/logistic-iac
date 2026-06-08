@@ -10,7 +10,7 @@ output "alb_dns_name" {
 
 output "alb_security_group_id" {
   description = "ALB security group id."
-  value       = aws_security_group.alb.id
+  value       = module.sg.security_group_id
 }
 
 output "http_listener_arn" {
