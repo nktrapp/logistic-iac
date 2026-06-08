@@ -1,0 +1,14 @@
+name: hub-events
+type: fifo
+producer: logistics-service
+consumers:
+  - logistics-service
+events:
+  - hub.created
+  - hub.connections.created
+dlq: true
+visibility_timeout_seconds: 60
+retention_seconds: 345600
+receive_wait_time_seconds: 20
+max_receive_count: 3
+content_based_deduplication: false

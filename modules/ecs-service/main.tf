@@ -1,5 +1,40 @@
 locals {
   log_group_name = "/ecs/${var.project_name}/${var.environment}/${var.service_name}"
+  app_cpu        = var.cpu
+  app_memory     = var.memory
+  task_cpu       = var.enable_adot_xray ? var.cpu + var.adot_cpu : var.cpu
+  task_memory    = var.enable_adot_xray ? var.memory + var.adot_memory : var.memory
+  adot_name      = "adot-collector"
+
+  adot_collector_config = <<-YAML
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: ${var.adot_memory_limiter_mib}
+    spike_limit_mib: ${var.adot_memory_limiter_spike_mib}
+  batch:
+    timeout: 5s
+    send_batch_size: 50
+exporters:
+  awsxray:
+    region: ${var.aws_region}
+service:
+  telemetry:
+    logs:
+      level: warn
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [awsxray]
+YAML
 
   environment = [
     for key in sort(keys(var.environment_variables)) : {
@@ -18,6 +53,45 @@ locals {
   repository_credentials = var.image_pull_secret_arn == "" ? {} : {
     repositoryCredentials = {
       credentialsParameter = var.image_pull_secret_arn
+    }
+  }
+
+  adot_container = {
+    name              = local.adot_name
+    image             = var.adot_image
+    cpu               = var.adot_cpu
+    memory            = var.adot_memory
+    memoryReservation = var.adot_memory_reservation
+    essential         = false
+    portMappings = [
+      {
+        containerPort = 4317
+        hostPort      = 0
+        protocol      = "tcp"
+      },
+      {
+        containerPort = 4318
+        hostPort      = 0
+        protocol      = "tcp"
+      }
+    ]
+    environment = [
+      {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      },
+      {
+        name  = "AOT_CONFIG_CONTENT"
+        value = local.adot_collector_config
+      }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.service.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "adot"
+      }
     }
   }
 }
@@ -166,23 +240,47 @@ resource "aws_iam_role_policy" "task_sqs" {
   })
 }
 
+resource "aws_iam_role_policy" "task_xray" {
+  count = var.enable_adot_xray ? 1 : 0
+
+  name = "${var.name_prefix}-${var.service_name}-xray-write"
+  role = aws_iam_role.task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
 resource "aws_ecs_task_definition" "service" {
   family                   = "${var.name_prefix}-${var.service_name}"
   network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
-  cpu                      = tostring(var.cpu)
-  memory                   = tostring(var.memory)
+  cpu                      = tostring(local.task_cpu)
+  memory                   = tostring(local.task_memory)
   execution_role_arn       = aws_iam_role.task_execution.arn
   task_role_arn            = aws_iam_role.task.arn
 
-  container_definitions = jsonencode([
+  container_definitions = jsonencode(concat([
     merge({
       name              = var.service_name
       image             = var.service_image
-      cpu               = var.cpu
-      memory            = var.memory
+      cpu               = local.app_cpu
+      memory            = local.app_memory
       memoryReservation = var.memory_reservation
       essential         = true
+      links             = var.enable_adot_xray ? [local.adot_name] : []
+      dependsOn = var.enable_adot_xray ? [{
+        containerName = local.adot_name
+        condition     = "START"
+      }] : []
       portMappings = [{
         containerPort = var.container_port
         hostPort      = 0
@@ -199,7 +297,7 @@ resource "aws_ecs_task_definition" "service" {
         }
       }
     }, local.repository_credentials)
-  ])
+  ], var.enable_adot_xray ? [local.adot_container] : []))
 
   tags = merge(var.tags, {
     Name    = "${var.name_prefix}-${var.service_name}"
