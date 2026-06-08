@@ -188,6 +188,48 @@ variable "create_cloudwatch_alarms" {
   default     = false
 }
 
+variable "enable_adot_xray" {
+  description = "Whether to run a traces-only ADOT Collector sidecar that exports OTLP traces to AWS X-Ray."
+  type        = bool
+  default     = false
+}
+
+variable "adot_image" {
+  description = "ADOT Collector image used by the optional X-Ray sidecar."
+  type        = string
+  default     = "public.ecr.aws/aws-observability/aws-otel-collector:v0.43.3"
+}
+
+variable "adot_cpu" {
+  description = "CPU units reserved for the optional ADOT Collector sidecar."
+  type        = number
+  default     = 32
+}
+
+variable "adot_memory" {
+  description = "Hard memory limit in MiB for the optional ADOT Collector sidecar."
+  type        = number
+  default     = 128
+}
+
+variable "adot_memory_reservation" {
+  description = "Soft memory reservation in MiB for the optional ADOT Collector sidecar."
+  type        = number
+  default     = 64
+}
+
+variable "adot_memory_limiter_mib" {
+  description = "Memory limiter threshold in MiB for the ADOT Collector."
+  type        = number
+  default     = 96
+}
+
+variable "adot_memory_limiter_spike_mib" {
+  description = "Memory limiter spike threshold in MiB for the ADOT Collector."
+  type        = number
+  default     = 24
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number

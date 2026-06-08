@@ -95,20 +95,26 @@ module "service" {
   max_capacity             = var.max_capacity
   cpu_target_value         = var.cpu_target_value
   create_cloudwatch_alarms = var.create_cloudwatch_alarms
+  enable_adot_xray         = true
 
   environment_variables = {
-    SPRING_PROFILES_ACTIVE           = "prod"
-    SERVER_PORT                      = "8080"
-    JAVA_TOOL_OPTIONS                = "-XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=70"
-    AWS_REGION                       = var.aws_region
-    SPRING_CLOUD_AWS_REGION_STATIC   = var.aws_region
-    REDIS_HOST                       = var.redis_host
-    REDIS_PORT                       = tostring(var.redis_port)
-    APP_VIACEP_BASE_URL              = var.viacep_base_url
-    APP_MESSAGING_INBOUND_QUEUE      = data.aws_ssm_parameter.package_events_name.value
-    APP_MESSAGING_OUTBOUND_QUEUE     = data.aws_ssm_parameter.logistics_events_name.value
-    APP_MESSAGING_INBOUND_QUEUE_URL  = data.aws_ssm_parameter.package_events_url.value
-    APP_MESSAGING_OUTBOUND_QUEUE_URL = data.aws_ssm_parameter.logistics_events_url.value
+    SPRING_PROFILES_ACTIVE                                = "prod"
+    SERVER_PORT                                           = "8080"
+    JAVA_TOOL_OPTIONS                                     = "-XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=70"
+    AWS_REGION                                            = var.aws_region
+    SPRING_CLOUD_AWS_REGION_STATIC                        = var.aws_region
+    APP_ENVIRONMENT                                       = var.environment
+    APP_VERSION                                           = element(split(":", var.service_image), length(split(":", var.service_image)) - 1)
+    MANAGEMENT_TRACING_EXPORT_OTLP_ENABLED                = "true"
+    MANAGEMENT_TRACING_SAMPLING_PROBABILITY               = "1.0"
+    MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT = "http://adot-collector:4318/v1/traces"
+    REDIS_HOST                                            = var.redis_host
+    REDIS_PORT                                            = tostring(var.redis_port)
+    APP_VIACEP_BASE_URL                                   = var.viacep_base_url
+    APP_MESSAGING_INBOUND_QUEUE                           = data.aws_ssm_parameter.package_events_name.value
+    APP_MESSAGING_OUTBOUND_QUEUE                          = data.aws_ssm_parameter.logistics_events_name.value
+    APP_MESSAGING_INBOUND_QUEUE_URL                       = data.aws_ssm_parameter.package_events_url.value
+    APP_MESSAGING_OUTBOUND_QUEUE_URL                      = data.aws_ssm_parameter.logistics_events_url.value
   }
 
   secrets = {
