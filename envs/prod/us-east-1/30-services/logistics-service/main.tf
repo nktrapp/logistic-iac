@@ -49,6 +49,14 @@ data "aws_ssm_parameter" "logistics_events_arn" {
   name = "${local.contracts_sqs_ssm_prefix}/logistics-events/arn"
 }
 
+data "aws_ssm_parameter" "hub_events_name" {
+  name = "${local.contracts_sqs_ssm_prefix}/hub-events/name"
+}
+
+data "aws_ssm_parameter" "hub_events_arn" {
+  name = "${local.contracts_sqs_ssm_prefix}/hub-events/arn"
+}
+
 # Data contract published by 20-data/logistics-service.
 data "aws_ssm_parameter" "mongodb_secret_arn" {
   name = "${local.data_ssm_prefix}/mongodb/secret-arn"
@@ -103,7 +111,6 @@ module "service" {
     SPRING_CLOUD_AWS_REGION_STATIC          = var.aws_region
     APP_ENVIRONMENT                         = var.environment
     APP_VERSION                             = element(split(":", var.service_image), length(split(":", var.service_image)) - 1)
-    MANAGEMENT_OTLP_TRACING_EXPORT_ENABLED  = "true"
     MANAGEMENT_TRACING_SAMPLING_PROBABILITY = "1.0"
     MANAGEMENT_OTLP_TRACING_ENDPOINT        = "http://adot-collector:4318/v1/traces"
     REDIS_HOST                              = data.aws_ssm_parameter.redis_host.value
@@ -111,6 +118,7 @@ module "service" {
     APP_VIACEP_BASE_URL                     = var.viacep_base_url
     APP_MESSAGING_INBOUND_QUEUE             = data.aws_ssm_parameter.package_events_name.value
     APP_MESSAGING_OUTBOUND_QUEUE            = data.aws_ssm_parameter.logistics_events_name.value
+    APP_MESSAGING_HUB_EVENTS_QUEUE          = data.aws_ssm_parameter.hub_events_name.value
     APP_MESSAGING_INBOUND_QUEUE_URL         = data.aws_ssm_parameter.package_events_url.value
     APP_MESSAGING_OUTBOUND_QUEUE_URL        = data.aws_ssm_parameter.logistics_events_url.value
   }
@@ -128,6 +136,7 @@ module "service" {
   sqs_queue_arns = [
     data.aws_ssm_parameter.package_events_arn.value,
     data.aws_ssm_parameter.logistics_events_arn.value,
+    data.aws_ssm_parameter.hub_events_arn.value,
   ]
 
   tags = local.tags
