@@ -39,7 +39,7 @@ variable "ecs_instance_min_size" {
 variable "ecs_instance_max_size" {
   description = "Maximum EC2 instances in the ECS ASG."
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "ecs_instance_desired_capacity" {
