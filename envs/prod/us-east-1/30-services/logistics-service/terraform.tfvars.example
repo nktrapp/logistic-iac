@@ -1,0 +1,9 @@
+# Use an immutable tag in prod. Do not use latest.
+service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<version>"
+
+desired_count = 1
+
+# MongoDB and Redis are provisioned by 20-data/logistics-service, which
+# publishes the connection secret ARNs + redis host/port to SSM. This stack
+# reads them from SSM automatically — nothing to configure here. Apply the
+# 20-data stack first.

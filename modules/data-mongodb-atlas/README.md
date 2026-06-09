@@ -13,15 +13,16 @@ allows one M0 cluster per project, so each service uses its own project.
 The `mongodbatlas` provider is configured in the **service stack** (root
 module), not here. It needs an Atlas API key (`public_key` / `private_key`).
 
-## Adopting an existing cluster (toggle on without recreating data)
+## Adopting an existing cluster (import instead of recreating data)
 
-Set the variables to match what you already have, then `terraform import` the
-existing objects so Terraform manages them in place:
+If you already created the project/cluster by hand, set the variables to match
+what you have, then `terraform import` the existing objects so Terraform manages
+them in place instead of creating duplicates:
 
 ```bash
-terraform import 'module.mongodb[0].mongodbatlas_project.this' <PROJECT_ID>
-terraform import 'module.mongodb[0].mongodbatlas_advanced_cluster.this' <PROJECT_ID>-<CLUSTER_NAME>
-terraform import 'module.mongodb[0].mongodbatlas_database_user.this' <PROJECT_ID>-<USERNAME>-admin
+terraform import 'module.mongodb.mongodbatlas_project.this' <PROJECT_ID>
+terraform import 'module.mongodb.mongodbatlas_advanced_cluster.this' <PROJECT_ID>-<CLUSTER_NAME>
+terraform import 'module.mongodb.mongodbatlas_database_user.this' <PROJECT_ID>-<USERNAME>-admin
 ```
 
 Set `db_password` to the existing user's password so the generated

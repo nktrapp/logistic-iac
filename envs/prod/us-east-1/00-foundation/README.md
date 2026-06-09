@@ -2,5 +2,5 @@
 
 Authoritative location for shared prod infrastructure.
 
-Prod applies require Atlantis approval, mergeable PR state and an undiverged
-branch.
+Apply manually with `terraform apply` after review. This is the base layer:
+VPC, ALB, ECS cluster, IAM. Other stacks depend on its remote state.

@@ -13,26 +13,27 @@ Ordem dos stacks:
 
 ```text
 envs/bootstrap/us-east-1
-envs/dev/us-east-1/00-foundation
-envs/dev/us-east-1/10-contracts
-envs/dev/us-east-1/20-services/package-service
-envs/dev/us-east-1/20-services/logistics-service
+envs/prod/us-east-1/00-foundation
+envs/prod/us-east-1/10-contracts
+envs/prod/us-east-1/20-data/package-service
+envs/prod/us-east-1/20-data/logistics-service
+envs/prod/us-east-1/30-services/package-service
+envs/prod/us-east-1/30-services/logistics-service
 ```
-
-Em `prod`, a ordem e igual trocando `dev` por `prod`.
 
 Responsabilidades:
 
 ```text
-bootstrap       S3 bucket de state, DynamoDB lock e repositorios ECR (um por servico)
-foundation      VPC, subnets, ALB, ECS cluster EC2, ASG e IAM base
-contracts       SQS, DLQs, alarmes SQS e parametros SSM de contrato
-package-service ECS service, target group, IAM task, secret com a URI do MongoDB
-logistics       ECS service, target group, IAM task, secrets com a URI do MongoDB e a senha do Redis
+bootstrap        S3 bucket de state, DynamoDB lock e repositorios ECR (um por servico)
+foundation       VPC, subnets, ALB, ECS cluster EC2, ASG e IAM base
+contracts        SQS, DLQs, alarmes SQS e parametros SSM de contrato
+data             MongoDB Atlas M0 (+ Redis Cloud no logistics), secret no Secrets Manager e contrato SSM
+package-service  ECS service, target group, IAM task; le o secret do MongoDB via contrato SSM
+logistics        ECS service, target group, IAM task; le os secrets de MongoDB e Redis via contrato SSM
 ```
 
 Os repositorios ECR sao unicos por servico (sem ambiente no nome) e vivem no
-stack `bootstrap`. A mesma imagem/tag e promovida de `dev` para `prod`.
+stack `bootstrap`.
 
 ## Pre-requisitos
 
@@ -212,7 +213,7 @@ stacks e o default `terraform_state_bucket` nos stacks de servico.
 ## 2. Subir foundation
 
 ```bash
-cd ../../dev/us-east-1/00-foundation
+cd ../../prod/us-east-1/00-foundation
 terraform init
 terraform plan
 terraform apply
@@ -243,73 +244,88 @@ Esse stack cria as filas declaradas em `catalog/sqs/*.yaml` e publica os
 parametros:
 
 ```text
-/logistic/dev/contracts/sqs/package-events/name
-/logistic/dev/contracts/sqs/package-events/url
-/logistic/dev/contracts/sqs/package-events/arn
-/logistic/dev/contracts/sqs/logistics-events/name
-/logistic/dev/contracts/sqs/logistics-events/url
-/logistic/dev/contracts/sqs/logistics-events/arn
+/logistic/prod/contracts/sqs/package-events/name
+/logistic/prod/contracts/sqs/package-events/url
+/logistic/prod/contracts/sqs/package-events/arn
+/logistic/prod/contracts/sqs/logistics-events/name
+/logistic/prod/contracts/sqs/logistics-events/url
+/logistic/prod/contracts/sqs/logistics-events/arn
 ```
 
 Servicos leem esses parametros. Servicos nao criam SQS.
 
-## Pre: MongoDB Atlas (M0 free)
+## 4. Subir os dados (MongoDB Atlas + Redis Cloud)
 
-Os servicos usam MongoDB no Atlas (free tier). Cada stack de servico cria apenas
-um secret no Secrets Manager com a connection string; o banco em si vive no
-Atlas.
+A camada `20-data/<service>` provisiona o banco/cache em provedores gerenciados
+gratuitos fora da AWS (MongoDB Atlas M0 e, para o logistics, Redis Cloud free),
+cria o secret no Secrets Manager e publica o contrato no SSM (ARN do secret e,
+para o Redis, `host`/`port`). Os servicos leem esse contrato; ninguem cola
+connection string na mao.
 
-Configure uma vez:
+Crie uma vez as chaves de API:
 
-1. Crie uma conta gratis em <https://www.mongodb.com/atlas> e um cluster M0.
-2. Em `Database Access`, crie um usuario com senha (SCRAM).
-3. Em `Network Access`, libere o acesso. As instancias ECS estao em subnet
-   publica e nao tem IP fixo, entao para um ambiente de estudo libere
-   `0.0.0.0/0` (o acesso continua protegido por usuario/senha). Para algo mais
-   restrito, seria preciso NAT Gateway + EIP (gera custo).
-4. Em `Connect -> Drivers`, copie a connection string no formato:
+1. MongoDB Atlas: conta gratis em <https://www.mongodb.com/atlas>, uma
+   organizacao e uma API key (Public/Private) com permissao de Project Owner.
+   Anote o `org_id`.
+2. Redis Cloud (so o logistics usa): conta gratis em <https://redis.io/cloud/> e
+   uma API key (account key + secret key).
 
-```text
-mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<db>?retryWrites=true&w=majority
+O acesso ao Atlas fica liberado para `0.0.0.0/0` por padrao (as instancias ECS
+estao em subnet publica e nao tem IP fixo; o acesso segue protegido por
+usuario/senha). Para restringir, seria preciso NAT Gateway + EIP (gera custo).
+Nomes de projeto/cluster/banco tem defaults em `variables.tf` e as senhas sao
+geradas quando ficam em branco. Se voce ja criou o cluster/DB na mao, faca
+`terraform import` (veja o README de cada modulo) para adotar em vez de recriar.
+
+### package-service (so MongoDB)
+
+`terraform.tfvars` em `envs/prod/us-east-1/20-data/package-service`:
+
+```hcl
+atlas_public_key  = "<atlas-api-public-key>"
+atlas_private_key = "<atlas-api-private-key>"
+atlas_org_id      = "<atlas-org-id>"
 ```
 
-Use bancos separados por servico (ex.: `package_db` e `logistics_db`). Esse
-valor vai na variavel `mongodb_uri` do `terraform.tfvars` de cada servico
-(passos 4 e 5). O Atlas usa TLS por padrao e a connection string `mongodb+srv`
-ja e tratada pelo driver, sem CA extra.
+```bash
+cd envs/prod/us-east-1/20-data/package-service
+terraform init
+terraform apply
+```
 
-## Pre: Redis externo (apenas logistics-service)
+### logistics-service (MongoDB + Redis)
 
-O logistics-service usa um Redis gerenciado externo gratuito, como o Redis Cloud
-free (30 MB). O stack cria apenas um secret com a senha; `host` e `port` vao como
-variaveis comuns.
+`terraform.tfvars` em `envs/prod/us-east-1/20-data/logistics-service`:
 
-Configure uma vez (so para o logistics-service):
+```hcl
+atlas_public_key  = "<atlas-api-public-key>"
+atlas_private_key = "<atlas-api-private-key>"
+atlas_org_id      = "<atlas-org-id>"
 
-1. Crie uma conta gratis em <https://redis.io/cloud/> e um database free.
-2. Anote `host`, `port` e a senha (default user). Use o endpoint sem TLS, ja que
-   o `application-prod.yml` espera `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`
-   sem SSL.
-3. Esses valores vao nas variaveis `redis_host`, `redis_port` e `redis_password`
-   do `terraform.tfvars` do logistics-service (passo 5).
+rediscloud_api_key    = "<rediscloud-api-key>"
+rediscloud_secret_key = "<rediscloud-secret-key>"
+```
 
-O package-service nao usa Redis.
+```bash
+cd ../logistics-service
+terraform init
+terraform apply
+```
 
-## 4. Subir package-service
+## 5. Subir package-service
 
-Crie um arquivo local `terraform.tfvars` em
-`envs/dev/us-east-1/20-services/package-service`:
+`terraform.tfvars` em `envs/prod/us-east-1/30-services/package-service`:
 
 ```hcl
 service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/package-service:<tag>"
-mongodb_uri   = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/package_db?retryWrites=true&w=majority"
 desired_count = 1
 ```
 
-Depois aplique:
+A conexao com o MongoDB vem do contrato SSM publicado pelo `20-data` — sem
+connection string aqui. Aplique:
 
 ```bash
-cd ../20-services/package-service
+cd envs/prod/us-east-1/30-services/package-service
 terraform init
 terraform plan
 terraform apply
@@ -321,21 +337,16 @@ Ao final, veja:
 terraform output package_service_url
 ```
 
-## 5. Subir logistics-service
+## 6. Subir logistics-service
 
-Crie um arquivo local `terraform.tfvars` em
-`envs/dev/us-east-1/20-services/logistics-service`:
+`terraform.tfvars` em `envs/prod/us-east-1/30-services/logistics-service`:
 
 ```hcl
-service_image  = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
-mongodb_uri    = "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/logistics_db?retryWrites=true&w=majority"
-redis_host     = "<host>.redns.redis-cloud.com"
-redis_port     = 6379
-redis_password = "<senha-do-redis>"
-desired_count  = 1
+service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/logistics-service:<tag>"
+desired_count = 1
 ```
 
-Depois aplique:
+MongoDB e Redis vem do contrato SSM do `20-data`. Aplique:
 
 ```bash
 cd ../logistics-service
@@ -350,7 +361,7 @@ Ao final, veja:
 terraform output logistics_service_url
 ```
 
-## 6. Validar se subiu
+## 7. Validar se subiu
 
 Pegue as URLs dos outputs e teste:
 
@@ -362,11 +373,11 @@ curl http://<alb-dns>/api/v1/hubs
 No console AWS, confira:
 
 ```text
-ECS > cluster furb-logistics-dev-cluster > services RUNNING
+ECS > cluster furb-logistics-prod-cluster > services RUNNING
 EC2 > Target Groups > targets healthy
-CloudWatch Logs > /ecs/furb-logistics/dev/package-service
-CloudWatch Logs > /ecs/furb-logistics/dev/logistics-service
-SQS > filas com prefixo furb-logistics-dev
+CloudWatch Logs > /ecs/furb-logistics/prod/package-service
+CloudWatch Logs > /ecs/furb-logistics/prod/logistics-service
+SQS > filas com prefixo furb-logistics-prod
 ```
 
 Se a task nao subir, olhe primeiro:
@@ -374,40 +385,32 @@ Se a task nao subir, olhe primeiro:
 ```text
 1. A imagem com essa tag ja foi publicada no ECR (release rodou ou push manual)?
 2. A task role de execucao consegue puxar do ECR (mesma conta, policy padrao)?
-3. A URI do Atlas esta correta e o IP da instancia esta liberado no Atlas?
+3. O stack 20-data foi aplicado e os parametros SSM existem? O IP da instancia
+   esta liberado no Atlas?
 4. Target group esta chamando /management/health/liveness na porta 8080?
 5. CloudWatch Logs mostra erro de credencial, MongoDB, Redis ou SQS?
 ```
 
-## Prod
+## Tag de imagem
 
-Para `prod`, repita o fluxo em:
-
-```text
-envs/prod/us-east-1/00-foundation
-envs/prod/us-east-1/10-contracts
-envs/prod/us-east-1/20-services/package-service
-envs/prod/us-east-1/20-services/logistics-service
-```
-
-Em prod, use tag imutavel de imagem (a mesma imagem ja publicada no ECR pelo
-release):
+Use sempre tag imutavel (a mesma imagem ja publicada no ECR pelo release). Nao
+use `latest`:
 
 ```hcl
 service_image = "<account-id>.dkr.ecr.us-east-1.amazonaws.com/furb-logistics/package-service:1.2.3"
 ```
-
-Nao use `latest`.
 
 ## Destruir
 
 Para evitar custo, destrua na ordem inversa:
 
 ```text
-dev/us-east-1/20-services/logistics-service
-dev/us-east-1/20-services/package-service
-dev/us-east-1/10-contracts
-dev/us-east-1/00-foundation
+prod/us-east-1/30-services/logistics-service
+prod/us-east-1/30-services/package-service
+prod/us-east-1/20-data/logistics-service
+prod/us-east-1/20-data/package-service
+prod/us-east-1/10-contracts
+prod/us-east-1/00-foundation
 bootstrap/us-east-1
 ```
 
@@ -417,5 +420,6 @@ Comandos:
 terraform destroy
 ```
 
-Nunca destrua `bootstrap` antes de destruir os outros stacks, porque ele guarda
-o state remoto.
+Destruir `20-data` apaga o cluster MongoDB Atlas e o Redis (perda de dados) — e o
+esperado, ja que sao gerenciados pelo Terraform. Nunca destrua `bootstrap` antes
+dos outros stacks, porque ele guarda o state remoto.

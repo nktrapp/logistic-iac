@@ -1,9 +1,0 @@
-* @platform-team
-
-/catalog/sqs/ @platform-team @package-team @logistics-team
-/modules/ @platform-team
-/envs/*/*/00-foundation/ @platform-team
-/envs/*/*/10-contracts/ @platform-team
-/envs/*/*/20-services/package-service/ @package-team @platform-team
-/envs/*/*/20-services/logistics-service/ @logistics-team @platform-team
-/docs/ @platform-team
