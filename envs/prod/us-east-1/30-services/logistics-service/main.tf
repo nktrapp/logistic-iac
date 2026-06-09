@@ -29,20 +29,12 @@ data "aws_ssm_parameter" "package_events_name" {
   name = "${local.contracts_sqs_ssm_prefix}/package-events/name"
 }
 
-data "aws_ssm_parameter" "package_events_url" {
-  name = "${local.contracts_sqs_ssm_prefix}/package-events/url"
-}
-
 data "aws_ssm_parameter" "package_events_arn" {
   name = "${local.contracts_sqs_ssm_prefix}/package-events/arn"
 }
 
 data "aws_ssm_parameter" "logistics_events_name" {
   name = "${local.contracts_sqs_ssm_prefix}/logistics-events/name"
-}
-
-data "aws_ssm_parameter" "logistics_events_url" {
-  name = "${local.contracts_sqs_ssm_prefix}/logistics-events/url"
 }
 
 data "aws_ssm_parameter" "logistics_events_arn" {
@@ -119,8 +111,6 @@ module "service" {
     APP_MESSAGING_INBOUND_QUEUE             = data.aws_ssm_parameter.package_events_name.value
     APP_MESSAGING_OUTBOUND_QUEUE            = data.aws_ssm_parameter.logistics_events_name.value
     APP_MESSAGING_HUB_EVENTS_QUEUE          = data.aws_ssm_parameter.hub_events_name.value
-    APP_MESSAGING_INBOUND_QUEUE_URL         = data.aws_ssm_parameter.package_events_url.value
-    APP_MESSAGING_OUTBOUND_QUEUE_URL        = data.aws_ssm_parameter.logistics_events_url.value
   }
 
   secrets = {
