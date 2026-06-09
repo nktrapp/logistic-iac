@@ -12,3 +12,6 @@ crash.*.log
 !.env.example
 .DS_Store
 Thumbs.db
+
+# Local Claude Code config and runtime
+.claude/

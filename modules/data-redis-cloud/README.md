@@ -20,7 +20,7 @@ This module follows the **Essentials** resource naming introduced in the
 pin a different provider version, confirm the resource and attribute names
 (`public_endpoint`, `plan_id`) against that version before enabling.
 
-## Adopting an existing database (toggle on without recreating data)
+## Adopting an existing database (import instead of recreating data)
 
 Match `subscription_name`, `database_name`, `plan_name`, `cloud_provider` and
 `region` to what you already have, set `database_password` to the existing

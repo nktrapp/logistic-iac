@@ -14,7 +14,6 @@ catalog/sqs/                         # Contratos SQS declarativos
 modules/sqs-contracts/               # Modulo que materializa contratos SQS
 envs/local/ministack/contracts/       # Terraform local contra MiniStack
 envs/bootstrap/us-east-1/             # Bootstrap do backend remoto
-envs/dev/us-east-1/                  # Stacks AWS de dev
 envs/prod/us-east-1/                 # Stacks AWS de prod
 docs/                                # Fluxos, decisoes e guias operacionais
 ```
@@ -25,7 +24,11 @@ docs/                                # Fluxos, decisoes e guias operacionais
 - `00-foundation`: rede, ALB, ECS cluster, IAM base, KMS, DNS e recursos
   compartilhados.
 - `10-contracts`: SQS, DLQs, parametros SSM, alarmes e catalogo de eventos.
-- `20-services/*`: recursos de cada servico, sem ownership de SQS.
+- `20-data/*`: banco/cache gerenciado de cada servico (MongoDB Atlas M0, Redis
+  Cloud free). Cria o secret e publica ARN/host/port no SSM. Opcional e aplicado
+  antes do servico.
+- `30-services/*`: recursos de cada servico, sem ownership de SQS. Le a conexao
+  do contrato SSM publicado por `20-data`.
 
 ## Deploy AWS oficial
 
@@ -62,4 +65,3 @@ Leia:
 - [Fluxo de desenvolvimento](docs/development-flow.md)
 - [Contratos SQS](docs/sqs-contracts.md)
 - [MiniStack local](docs/local-ministack.md)
-- [Atlantis via GitHub Actions](docs/ATLANTIS_GITHUB_ACTIONS.md)

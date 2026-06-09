@@ -1,0 +1,17 @@
+# MongoDB Atlas (M0 free) + Redis Cloud (Essentials 30MB free), managed by
+# Terraform. Fill the API credentials below; project/cluster/subscription/
+# database names default in variables.tf and passwords are generated when left
+# blank. This stack creates the Secrets Manager secrets and publishes their
+# ARNs (plus redis host/port) to SSM, where 30-services/logistics-service reads
+# them. Keep credentials out of git.
+#
+# Already created the stores by hand? `terraform import` them once (see each
+# module README) so they are adopted instead of recreated.
+atlas_public_key  = "<atlas-api-public-key>"
+atlas_private_key = "<atlas-api-private-key>"
+atlas_org_id      = "<atlas-org-id>"
+# mongodb_db_password = "<existing-password-or-leave-blank-to-generate>"
+
+rediscloud_api_key    = "<rediscloud-api-key>"
+rediscloud_secret_key = "<rediscloud-secret-key>"
+# redis_password      = "<existing-password-or-leave-blank-to-generate>"
