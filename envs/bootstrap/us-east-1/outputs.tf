@@ -3,11 +3,6 @@ output "state_bucket_name" {
   value       = aws_s3_bucket.terraform_state.bucket
 }
 
-output "lock_table_name" {
-  description = "DynamoDB table used by Terraform state locking."
-  value       = aws_dynamodb_table.terraform_lock.name
-}
-
 output "ecr_repository_urls" {
   description = "Map of service name to its shared ECR repository URL."
   value       = { for name, repo in aws_ecr_repository.service : name => repo.repository_url }

@@ -20,7 +20,7 @@ docs/                                # Fluxos, decisoes e guias operacionais
 
 ## Camadas
 
-- `bootstrap`: S3 bucket de state e tabela DynamoDB de lock.
+- `bootstrap`: S3 bucket de state (lock nativo via S3, sem DynamoDB).
 - `00-foundation`: rede, ALB, ECS cluster, IAM base, KMS, DNS e recursos
   compartilhados.
 - `10-contracts`: SQS, DLQs, parametros SSM, alarmes e catalogo de eventos.
@@ -65,3 +65,4 @@ Leia:
 - [Fluxo de desenvolvimento](docs/development-flow.md)
 - [Contratos SQS](docs/sqs-contracts.md)
 - [MiniStack local](docs/local-ministack.md)
+- [AWS CLI e Terraform via Docker](docs/tools-docker.md)

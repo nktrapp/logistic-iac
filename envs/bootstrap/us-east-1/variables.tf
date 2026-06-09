@@ -22,12 +22,6 @@ variable "state_bucket_name" {
   default     = "logistic-iac-terraform-state"
 }
 
-variable "lock_table_name" {
-  description = "DynamoDB table name used by Terraform state locking."
-  type        = string
-  default     = "logistic-iac-terraform-lock"
-}
-
 variable "service_names" {
   description = "Services that get a shared, environment-agnostic ECR repository."
   type        = list(string)
