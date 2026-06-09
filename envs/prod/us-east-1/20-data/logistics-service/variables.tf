@@ -51,7 +51,9 @@ variable "atlas_org_id" {
 }
 
 variable "mongodb_project_name" {
-  description = "Atlas project name. Match your existing project to import it."
+  # Created fresh (no import): logistics gets its own Atlas project + M0, separate from the legacy
+  # shared Cluster0 (which can be deleted manually once both services are on their own clusters).
+  description = "Atlas project name (created by the module)."
   type        = string
   default     = "furb-logistics-logistics-service"
 }
@@ -69,6 +71,8 @@ variable "mongodb_database_name" {
 }
 
 variable "mongodb_db_username" {
+  # Dedicated user CREATED by the module (not the shared ntrapp_db_user). The app moves to these
+  # credentials; the legacy ntrapp_db_user is left untouched.
   description = "Atlas database user."
   type        = string
   default     = "logistics_app"

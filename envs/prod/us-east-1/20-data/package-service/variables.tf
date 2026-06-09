@@ -51,7 +51,9 @@ variable "atlas_org_id" {
 }
 
 variable "mongodb_project_name" {
-  description = "Atlas project name. Match your existing project to import it."
+  # Created fresh (no import): package gets its own Atlas project + M0, separate from the legacy
+  # shared Cluster0. Migrate package_db data into the new cluster after apply.
+  description = "Atlas project name (created by the module)."
   type        = string
   default     = "furb-logistics-package-service"
 }
