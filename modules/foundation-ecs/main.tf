@@ -180,7 +180,7 @@ resource "aws_autoscaling_group" "ecs" {
 }
 
 resource "aws_ecs_capacity_provider" "ecs" {
-  name = "${var.name_prefix}-ec2-micro"
+  name = "${var.name_prefix}-ec2-small"
 
   auto_scaling_group_provider {
     auto_scaling_group_arn         = aws_autoscaling_group.ecs.arn
