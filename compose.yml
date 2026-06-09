@@ -1,0 +1,41 @@
+# Tooling containers for this IaC repo: AWS CLI and Terraform without installing
+# them on the host. Both mount the repo at /work and your AWS credentials, and
+# share a Terraform plugin cache so providers are downloaded only once.
+#
+# They are CLIs, not long-running services — use `docker compose run --rm`:
+#
+#   docker compose run --rm aws sts get-caller-identity
+#   docker compose run --rm terraform -chdir=envs/prod/us-east-1/00-foundation init
+#
+# AWS credentials are read from the host's user .aws directory. On Windows that
+# is %USERPROFILE%\.aws (the default below). On macOS/Linux, or to point
+# elsewhere, set AWS_DIR (e.g. in a .env file): AWS_DIR=/home/me/.aws
+#
+# Full usage: docs/tools-docker.md
+
+services:
+  aws:
+    image: amazon/aws-cli:latest
+    working_dir: /work
+    volumes:
+      - .:/work
+      - ${AWS_DIR:-${USERPROFILE}/.aws}:/root/.aws
+    environment:
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+
+  terraform:
+    image: hashicorp/terraform:1.13
+    working_dir: /work
+    volumes:
+      - .:/work
+      - ${AWS_DIR:-${USERPROFILE}/.aws}:/root/.aws
+      - tf-plugin-cache:/plugin-cache
+    environment:
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      TF_IN_AUTOMATION: "1"
+      TF_PLUGIN_CACHE_DIR: /plugin-cache
+
+volumes:
+  tf-plugin-cache:
