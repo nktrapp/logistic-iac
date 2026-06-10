@@ -29,20 +29,12 @@ data "aws_ssm_parameter" "package_events_name" {
   name = "${local.contracts_sqs_ssm_prefix}/package-events/name"
 }
 
-data "aws_ssm_parameter" "package_events_url" {
-  name = "${local.contracts_sqs_ssm_prefix}/package-events/url"
-}
-
 data "aws_ssm_parameter" "package_events_arn" {
   name = "${local.contracts_sqs_ssm_prefix}/package-events/arn"
 }
 
 data "aws_ssm_parameter" "logistics_events_name" {
   name = "${local.contracts_sqs_ssm_prefix}/logistics-events/name"
-}
-
-data "aws_ssm_parameter" "logistics_events_url" {
-  name = "${local.contracts_sqs_ssm_prefix}/logistics-events/url"
 }
 
 data "aws_ssm_parameter" "logistics_events_arn" {
@@ -91,13 +83,10 @@ module "service" {
     SPRING_CLOUD_AWS_REGION_STATIC          = var.aws_region
     APP_ENVIRONMENT                         = var.environment
     APP_VERSION                             = element(split(":", var.service_image), length(split(":", var.service_image)) - 1)
-    MANAGEMENT_OTLP_TRACING_EXPORT_ENABLED  = "true"
     MANAGEMENT_TRACING_SAMPLING_PROBABILITY = "1.0"
     MANAGEMENT_OTLP_TRACING_ENDPOINT        = "http://adot-collector:4318/v1/traces"
     APP_MESSAGING_INBOUND_QUEUE             = data.aws_ssm_parameter.logistics_events_name.value
     APP_MESSAGING_OUTBOUND_QUEUE            = data.aws_ssm_parameter.package_events_name.value
-    APP_MESSAGING_INBOUND_QUEUE_URL         = data.aws_ssm_parameter.logistics_events_url.value
-    APP_MESSAGING_OUTBOUND_QUEUE_URL        = data.aws_ssm_parameter.package_events_url.value
   }
 
   secrets = {
